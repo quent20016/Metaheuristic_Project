@@ -26,6 +26,7 @@ constraints = [
     lambda solution: all(solution[i] >= 0 for i in range(len(solution)))
 ]
 
+# Minimiser le temps de réponse moyen
 def objective_1(solution):
     # Calcul du temps de réponse moyen
     total_time = 0
@@ -33,6 +34,7 @@ def objective_1(solution):
         total_time += solution[i] * tasks[i].computation_time
     return total_time / len(solution)
 
+# Maximiser la bande passante utilisée
 def objective_2(solution):
     # Calcul de la bande passante utilisée
     total_bandwidth = 0
@@ -40,6 +42,7 @@ def objective_2(solution):
         total_bandwidth += solution[i] * tasks[i].bandwidth_requirements
     return total_bandwidth
 
+# Minimiser le coût total
 def objective_3(solution):
     # Calcul du coût total
     total_cost = 0
@@ -53,7 +56,14 @@ def generate_random_solution():
 
 # Fonction pour évaluer une solution
 def evaluate_solution(solution):
-    return [objective(solution) for objective in objectives]
+    # Calcul des valeurs des objectifs
+    objective_1_value = objective_1(solution)
+    objective_2_value = objective_2(solution)
+    objective_3_value = objective_3(solution)
+
+    # Combinaison des valeurs des objectifs en une seule valeur
+    return objective_1_value + objective_2_value + objective_3_value
+
 
 # Fonction pour mettre à jour la vitesse des chauves-souris
 def update_velocities(velocities, solutions, best_solution):
