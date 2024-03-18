@@ -46,6 +46,15 @@ def f3(x):
     x_reshaped = x.reshape((n_taches, n_noeuds))
     return np.sum(t + x_reshaped)
 
+# Contraintes
+def constraint1(x):
+    # Le nombre de vm obtenue par iot ne doit pas exceder le nombre de machines inactive sur le serveur
+    return np.array([np.sum(x[i::n_noeuds]) for i in range(n_taches)]) - 1
+
+def constraint2(x):
+    # La capacité de traitement maximale de chaque nœud ne doit pas être dépassée
+    return C - np.dot(w, x.reshape((n_taches, n_noeuds)))
+
 def init_ffa(n, d, Lb, Ub, u0):
     ns = np.zeros((n, d))
     if len(Lb) > 0:
@@ -131,6 +140,10 @@ if __name__ == "__main__":
 
     # Initial random guess
     u0 = Lb + (Ub - Lb) * np.random.rand(d)
+
+    # Définition des contraintes pour le solveur
+    constraints = [{'type': 'ineq', 'fun': constraint1},
+                   {'type': 'ineq', 'fun': constraint2}]
 
     for objective_func in [f1, f2, f3]:
         u, fval, NumEval = ffa_mincon(objective_func, u0, Lb, Ub, para)
