@@ -101,9 +101,10 @@ if __name__ == "__main__":
     # Initial random guess
     u0 = Lb + (Ub - Lb) * np.random.rand(d)
 
-    u, fval, NumEval = ffa_mincon(f1, u0, Lb, Ub, para)
-
-    # Display results
-    print("Best solution:", u)
-    print("Best objective:", fval)
-    print("Total number of function evaluations:", NumEval)
+    for objective_func in [f1, f2, f3]:
+        u, fval, NumEval = ffa_mincon(objective_func, u0, Lb, Ub, para)
+        # Display results for each objective function
+        print("Best solution:", u)
+        print("Best objective:", fval)
+        print("Total number of function evaluations:", NumEval)
+        print()
