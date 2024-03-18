@@ -1,173 +1,109 @@
-import random
+import numpy as np
 
 
-class Luciole:
-    def __init__(self, position, luminosite):
-        self.position = position
-        self.luminosite = luminosite
+# def f1(x):
+#     # Exact solutions should be (1,1,...,1)
+#     return np.sum((x - 1) ** 2)
+# Fonction objectif 1: Minimiser la consommation d'énergie totale
+def f1(x):
+    x_reshaped = x.reshape((n_taches, n_noeuds))
+    return np.sum(P * t * x_reshaped)
 
-    def evaluer_solution(self, probleme):
-        """
-        Fonction pour évaluer la qualité d'une solution d'allocation de ressources.
+# Fonction objectif 2: Minimiser le temps d'exécution total
+def f2(x):
+    x_reshaped = x.reshape((n_taches, n_noeuds))
+    return np.sum(t * x_reshaped)
 
-        Args:
-            probleme (Probleme): Objet représentant le problème d'allocation de ressources.
+# Fonction objectif 3: Minimiser l'équilibre de charge des serveurs
+def f3(x):
+    x_reshaped = x.reshape((n_taches, n_noeuds))
+    return np.sum(t + x_reshaped)
 
-        Returns:
-            float: Score de qualité de la solution.
-        """
-
-        temps_execution_total = 0
-        consommation_energie_totale = 0
-        latence_totale = 0
-
-        # Parcourir toutes les tâches
-        for tache in probleme.taches:
-            # Déterminer le serveur affecté à la tâche
-            serveur = self.position[tache]
-
-            # Calculer le temps d'exécution sur le serveur
-            temps_execution = probleme.temps_execution[tache][serveur]
-            temps_execution_total += temps_execution
-
-            # Calculer la consommation d'énergie sur le serveur
-            consommation_energie = probleme.consommation_energie[tache][serveur]
-            consommation_energie_totale += consommation_energie
-
-            # Calculer la latence
-            latence = probleme.latence[tache][serveur] + temps_execution
-            latence_totale += latence
-
-        # Calculer le score de qualité
-        # TODO: Définir la pondération des différents critères
-        score = temps_execution_total + consommation_energie_totale + latence_totale
-
-        return score
-
-    def mettre_a_jour_luminosite(self, meilleure_solution):
-        """
-        Fonction pour mettre à jour la luminosité d'une luciole en fonction de la meilleure solution connue.
-
-        Args:
-            meilleure_solution (dict): Dictionnaire représentant la meilleure solution connue.
-
-        Returns:
-            None: La luminosité de la luciole est modifiée en interne.
-        """
-
-        # Calculer la distance entre la luciole et la meilleure solution
-        distance = self.calculer_distance(meilleure_solution)
-
-        # Déterminer le coefficient d'absorption
-        alpha = 0.5
-
-        # Mettre à jour la luminosité
-        self.luminosite = self.luminosite * (1 - alpha * distance)
-
-    def se_deplacer(self, espace_recherche):
-        """
-        Fonction pour le déplacement d'une luciole dans l'espace de recherche.
-
-        Args:
-            espace_recherche (EspaceRecherche): Objet représentant l'espace de recherche.
-
-        Returns:
-            None: La position de la luciole est modifiée en interne.
-        """
-
-        voisins = espace_recherche.generer_voisins(self.position)
-        nouvelle_position = random.choice(voisins)
-
-        # Déterminer si la nouvelle solution est meilleure
-        nouvelle_solution_score = self.evaluer_solution(nouvelle_position)
-        ancienne_solution_score = self.evaluer_solution(self.position)
-
-        # Déplacer la luciole vers la meilleure solution
-        if nouvelle_solution_score < ancienne_solution_score:
-            self.position = nouvelle_position
-
-class Probleme:
-    def __init__(self, taches, serveurs, temps_execution, consommation_energie, latence):
-        """
-        Classe pour représenter un problème d'allocation de ressources.
-
-        Args:
-            taches (list): Liste des tâches à allouer.
-            serveurs (list): Liste des serveurs disponibles.
-            temps_execution (dict): Dictionnaire des temps d'exécution de chaque tâche sur chaque serveur.
-            consommation_energie (dict): Dictionnaire de la consommation d'énergie de chaque tâche sur chaque serveur.
-            latence (dict): Dictionnaire de la latence de chaque tâche sur chaque serveur.
-        """
-
-        self.taches = taches
-        self.serveurs = serveurs
-        self.temps_execution = temps_execution
-        self.consommation_energie = consommation_energie
-        self.latence = latence
-
-class EspaceRecherche:
-    def __init__(self, taches, serveurs):
-        """
-        Classe pour représenter l'espace de recherche de l'algorithme des lucioles.
-
-        Args:
-            taches (list): Liste des tâches à allouer.
-            serveurs (list): Liste des serveurs disponibles.
-        """
-
-        self.taches = taches
-        self.serveurs = serveurs
-
-    def generer_voisins(self, position):
-        """
-        Fonction pour générer les voisins d'une solution dans l'espace de recherche.
-
-        Args:
-            position (dict): Dictionnaire représentant une solution d'allocation.
-
-        Returns:
-            list: Liste des solutions voisines.
-        """
-
-        voisins = []
-        for tache in self.taches:
-            # Copier la solution actuelle
-            nouvelle_position = position.copy()
-
-            # Définir une nouvelle affectation pour la tâche
-            nouvelle_position[tache] = random.choice(self.serveurs)
-
-            # Ajouter la nouvelle solution à la liste des voisins
-            voisins.append(nouvelle_position)
-
-        return voisins
+def init_ffa(n, d, Lb, Ub, u0):
+    ns = np.zeros((n, d))
+    if len(Lb) > 0:
+        for i in range(n):
+            ns[i, :] = Lb + (Ub - Lb) * np.random.rand(d)
+    else:
+        for i in range(n):
+            ns[i, :] = u0 + np.random.randn(d)
+    Lightn = np.ones(n) * 10 ** 100
+    return ns, Lightn
 
 
-def algorithme_luciole(probleme, nb_lucioles, iterations):
-    # Initialisation des lucioles
-    lucioles = [Luciole(position_aleatoire(), luminosite_aleatoire()) for _ in range(nb_lucioles)]
+def alpha_new(alpha, NGen):
+    delta = 1 - (10 ** (-4) / 0.9) ** (1 / NGen)
+    return (1 - delta) * alpha
 
-    meilleure_solution = None
-    for iteration in range(iterations):
-        # Mise à jour de la luminosité des lucioles
-        for luciole in lucioles:
-            luciole.mettre_a_jour_luminosite(meilleure_solution)
 
-        # Déplacement des lucioles
-        for luciole in lucioles:
-            luciole.se_deplacer(espace_recherche)
+def findlimits(n, ns, Lb, Ub):
+    for i in range(n):
+        ns_tmp = ns[i, :]
+        ns_tmp[ns_tmp < Lb] = Lb[ns_tmp < Lb]
+        ns_tmp[ns_tmp > Ub] = Ub[ns_tmp > Ub]
+        ns[i, :] = ns_tmp
+    return ns
 
-        # Mise à jour de la meilleure solution
-        meilleure_solution = max(lucioles, key=lambda luciole: luciole.evaluer_solution(probleme))
 
-    return meilleure_solution
+def ffa_move(n, d, ns, Lightn, nso, Lighto, nbest, Lightbest, alpha, betamin, gamma, Lb, Ub):
+    scale = np.abs(Ub - Lb)
+    for i in range(n):
+        for j in range(n):
+            r = np.sqrt(np.sum((ns[i, :] - ns[j, :]) ** 2))
+            if Lightn[i] > Lighto[j]:
+                beta0 = 1
+                beta = (beta0 - betamin) * np.exp(-gamma * r ** 2) + betamin
+                tmpf = alpha * (np.random.rand(d) - 0.5) * scale
+                ns[i, :] = ns[i, :] * (1 - beta) + nso[j, :] * beta + tmpf
+    ns = findlimits(n, ns, Lb, Ub)
+    return ns
 
-# Exemple d'utilisation
-probleme = ... # Définissez votre problème d'allocation de ressources
-nb_lucioles = 10
-iterations = 100
 
-meilleure_allocation = algorithme_luciole(probleme, nb_lucioles, iterations)
+def ffa_mincon(fhandle, u0, Lb, Ub, para):
+    if len(para) < 5:
+        para.extend([0.25, 0.20, 1])
+    n, MaxGeneration, alpha, betamin, gamma = para
+    NumEval = n * MaxGeneration
+    if len(Lb) == 0:
+        Lb = np.zeros_like(u0)
+    if len(Ub) == 0:
+        Ub = np.full_like(u0, 2)
+    d = len(u0)
+    zn = np.ones(n) * 10 ** 100
+    ns, Lightn = init_ffa(n, d, Lb, Ub, u0)
+    for k in range(MaxGeneration):
+        alpha = alpha_new(alpha, MaxGeneration)
+        for i in range(n):
+            zn[i] = fhandle(ns[i, :])
+            Lightn[i] = zn[i]
+        Lightn_sorted_indices = np.argsort(zn)
+        ns_tmp = ns.copy()
+        for i in range(n):
+            ns[i, :] = ns_tmp[Lightn_sorted_indices[i], :]
+        nso = ns.copy()
+        Lighto = Lightn.copy()
+        nbest = ns[0, :]
+        Lightbest = Lightn[0]
+        fbest = Lightbest
+        ns = ffa_move(n, d, ns, Lightn, nso, Lighto, nbest, Lightbest, alpha, betamin, gamma, Lb, Ub)
+    return nbest, fbest, NumEval
 
-# Évaluation de la meilleure allocation
-print(meilleure_allocation)
+
+if __name__ == "__main__":
+    # parameters [n N_iteration alpha betamin gamma]
+    para = [20, 500, 0.5, 0.2, 1]
+
+    # Simple bounds/limits for d-dimensional problems
+    d = 15
+    Lb = np.zeros(d)
+    Ub = np.full(d, 2)
+
+    # Initial random guess
+    u0 = Lb + (Ub - Lb) * np.random.rand(d)
+
+    u, fval, NumEval = ffa_mincon(f1, u0, Lb, Ub, para)
+
+    # Display results
+    print("Best solution:", u)
+    print("Best objective:", fval)
+    print("Total number of function evaluations:", NumEval)
