@@ -4,6 +4,33 @@ import numpy as np
 # def f1(x):
 #     # Exact solutions should be (1,1,...,1)
 #     return np.sum((x - 1) ** 2)
+
+
+# Définition des variables
+n_taches = 10  # Nombre de tâches
+n_noeuds = 4  # Nombre de nœuds de calcul
+
+# Capacités de traitement maximales
+C = np.array([10, 12, 8, 15])
+
+# Puissance consommée par tâche
+P = np.random.rand(n_taches, n_noeuds)
+
+# Temps de processing par tâche
+t = np.random.rand(n_taches, n_noeuds)
+
+# Charge de travail par tâche
+w = np.random.rand(n_taches)
+
+# Paramètres de l'algorithme Firefly
+alpha = 0.5  # Coefficient d'absorption
+beta = 0.2  # Coefficient de randomisation
+gamma = 1.0  # Facteur d'atténuation
+
+
+
+
+
 # Fonction objectif 1: Minimiser la consommation d'énergie totale
 def f1(x):
     x_reshaped = x.reshape((n_taches, n_noeuds))
@@ -89,12 +116,16 @@ def ffa_mincon(fhandle, u0, Lb, Ub, para):
     return nbest, fbest, NumEval
 
 
+
+
+
+
 if __name__ == "__main__":
     # parameters [n N_iteration alpha betamin gamma]
-    para = [20, 500, 0.5, 0.2, 1]
+    para = [20, 500, alpha, beta, gamma]
 
     # Simple bounds/limits for d-dimensional problems
-    d = 15
+    d = 15 # n_taches * n_noeuds
     Lb = np.zeros(d)
     Ub = np.full(d, 2)
 
